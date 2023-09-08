@@ -32,4 +32,4 @@ if __name__ == "__main__":
 # - Change need calulation so that it will look at how much they gain more and then consider doing something 
 # 
 # DONE
-# - Make the trees etc smaller
+# - Make the trees smaller
