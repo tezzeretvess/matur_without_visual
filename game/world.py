@@ -1,6 +1,6 @@
 import pygame as pg
 import random
-import noise
+import noise # Download -> https://www.lfd.uci.edu/~gohlke/pythonlibs/#noise
 from .settings import TILE_SIZE
 from .buildings import Lumbermill,Stonemasonry
 
