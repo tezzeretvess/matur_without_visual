@@ -348,8 +348,7 @@ class Worker:
                 best_building_position = building_pos
 
         # Final need
-        self.need_gather = np.tanh(max_building_proximity + max_building_inventory +
-                                   (random.uniform(-0.1, 0.1) * random_weight))
+        self.need_gather = max_building_proximity + max_building_inventory + (random.uniform(-0.1, 0.1) * random_weight)
         self.optimal_building_pos = best_building_position
         print(self.need_gather)
 
@@ -389,8 +388,7 @@ class Worker:
                     optimal_worker_give_pos = person_pos
 
         # Calculate final need_give
-        self.need_give = np.tanh(
-            max_payoff + (random.uniform(-0.1, 0.1)*random_weight))
+        self.need_give = max_payoff + (random.uniform(-0.1, 0.1)*random_weight)
         self.optimal_worker_give_pos = optimal_worker_give_pos
 
     def need_m_steal(self, proximity_weight=1.0, inventory_weight=1.0, random_weight=0):
@@ -428,8 +426,7 @@ class Worker:
                     optimal_worker_steal_pos = person_pos
 
         # Calculate final need_steal 
-        self.need_steal = np.tanh(
-            max_payoff + (random.uniform(-0.1, 0.1)*random_weight))
+        self.need_steal = max_payoff + (random.uniform(-0.1, 0.1)*random_weight)
         self.optimal_worker_steal_pos = optimal_worker_steal_pos
 
     def need_management(self):
