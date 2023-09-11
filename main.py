@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
 # TODO
 # - Build Logic to decide which behaviour should be done
-# - Why interactions need changing although parameters should be changing?!
+# - Why interactions need changing although parameters should be changing?
 # - Needs
 # - Optimize remove debug 
 # - Change need calulation so that it will look at how much they gain more and then consider doing something 
