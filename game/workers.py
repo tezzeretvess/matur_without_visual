@@ -409,26 +409,25 @@ class Worker:
                 distance = pg.math.Vector2(self.tile["grid"]).distance_to(
                     pg.math.Vector2(person.tile["grid"]))
 
-                # Calculate proximity
+                # proximity
                 if distance > 0:
                     proximity_value = proximity_weight / distance
                 else:
                     proximity_value = 0
 
-                # Calculate inventory difference
+                # inventory difference
                 inventory_diff = (
                     self.inventory - person.inventory) * inventory_weight
 
-                # Calculate the total payoff as a combination of proximity and inventory difference
+                # Calculate total payoff
                 total_payoff = proximity_value + inventory_diff
 
                 # Update if this worker has a higher payoff
                 if total_payoff > max_payoff:
                     max_payoff = total_payoff
-                    # Update the position of the optimal worker to steal from
                     optimal_worker_steal_pos = person_pos
 
-        # Calculate final need_steal value based on the worker with the highest total payoff
+        # Calculate final need_steal 
         self.need_steal = np.tanh(
             max_payoff + (random.uniform(-0.1, 0.1)*random_weight))
         self.optimal_worker_steal_pos = optimal_worker_steal_pos
@@ -450,7 +449,6 @@ class Worker:
     # Decision making methode
 
     def brain(self):
-        # Update needs and behaviors periodically
         now = pg.time.get_ticks()
         if now - self.update_timer > 1000:
             self.update_timer = now
@@ -498,9 +496,9 @@ class Worker:
 
     def update(self):
         # self.debug()
-        self.brain()           # Update the worker's decision-making and needs
-        self.loot_building()   # Attempt to loot a building
-        self.move()       # Execute movement behavior based on current situation
+        self.brain()           
+        self.loot_building()   
+        self.move()       
         self.interacting()
-        self.need_management()  # Update needs again (optional, if needed)
+        self.need_management()  
         # self.debug()
