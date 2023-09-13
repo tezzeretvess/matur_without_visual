@@ -28,6 +28,7 @@ class Worker:
         self.is_moving = True
         self.moving_number = 2
         self.is_interacting = False
+        # Need variabeles
         self.need_gather = 0  # control gather behavior
         self.need_steal = 0  # control steal behavior
         self.need_give = 0  # control give behavior
@@ -257,12 +258,12 @@ class Worker:
         else:
             self.moving_number = 4  # Switch to idle if no buildings nearby
 
-    # Interaction
+    # Interaction/Behaviour
         # controls Is_moving -> stops 2 worker if dist < 2 until interaction finished
 
     def interacting(self):
         _, _, _, _, dist_to_all_persons, worker, _ = self.util_return()
-        if min(dist_to_all_persons) < 5 and self.need_interaction > 1:
+        if min(dist_to_all_persons) < 3 and self.need_interaction > 1:
             print("Interacting")
             self.is_interacting = True
             worker.is_interacting = True
@@ -285,7 +286,7 @@ class Worker:
         else:
             pass
 
-        # Interaction between players
+    # Interaction between players
 
     def give_to_person(self, amount=0):
         _, _, _, _, _, worker, _ = self.util_return()
@@ -480,7 +481,26 @@ class Worker:
                 self.give_to_person()
             elif self.need_give < self.need_steal and self.need_steal > 0:
                 self.take_from_person()
+    # Other
+    # Decay of materials
+    def decay_inventory(self,amount_in_percent=0.01,step_up_per_100=0.01):
+        if self.inventory > 0:
+            reduction_amount = self.inventory*(amount_in_percent + step_up_per_100 * (self.inventory // 100))
+            self.inventory -= reduction_amount
 
+    def management_of_decay(self):
+        now = pg.time.get_ticks()
+        if self.moving_number == 2 or self.moving_number == 3:
+            if now - self.update_timer > 1000:
+                self.update_timer = now
+                self.decay_inventory()
+        if self.moving_number == 4:
+            if now - self.update_timer > 2000:
+                self.update_timer = now
+                self.decay_inventory()
+        else:
+            self.update_timer = now
+            
     # Updating
 
     def debug(self):
@@ -498,4 +518,5 @@ class Worker:
         self.move()       
         self.interacting()
         self.need_management()  
+        self.management_of_decay()
         # self.debug()
