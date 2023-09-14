@@ -334,7 +334,7 @@ class Worker:
                 proximity_value = 0  # Avoid division by zero
 
             # Inventory
-            inventory_value = inventory_weight * (building.inventory - self.inventory)
+            inventory_value = inventory_weight * abs((building.inventory - self.inventory))
 
             # Inventory boost
             if building.inventory >= 100:
@@ -375,8 +375,8 @@ class Worker:
                     proximity_value = 0
 
                 # Inventory
-                inventory_diff = (
-                    self.inventory - person.inventory) * inventory_weight
+                inventory_diff = abs((
+                    self.inventory - person.inventory) * inventory_weight)
 
                 # Total payoff
                 total_payoff = proximity_value + inventory_diff
@@ -414,8 +414,8 @@ class Worker:
                     proximity_value = 0
 
                 # inventory difference
-                inventory_diff = (
-                    self.inventory - person.inventory) * inventory_weight
+                inventory_diff = abs((
+                    self.inventory - person.inventory)) * inventory_weight
 
                 # Calculate total payoff
                 total_payoff = proximity_value + inventory_diff
