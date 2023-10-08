@@ -358,7 +358,7 @@ class Worker:
         self.optimal_building_pos = best_building_position
         print(self.need_gather)
 
-    def need_m_give(self, proximity_weight=0.2, inventory_weight=0.8, random_weight=0):
+    def need_m_give(self, proximity_weight=0.2, inventory_weight=0.8, random_weight=0, distance_limit=20):
         # Informations
         _, _, people_positions, _, _, _, _ = self.util_return()
 
