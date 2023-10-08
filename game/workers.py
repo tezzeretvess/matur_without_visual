@@ -288,12 +288,22 @@ class Worker:
             pass
 
     # Interaction between players
+    def interaction_amount_calculations(self, target, give, percent, random_control=0): # give (true) or steal (false)
+        if give:
+            inventory_diff = self.inventory - target.inventory
+            give_amount = inventory_diff * (percent + random.uniform(0, 0.4)*random_control)
+            return give_amount
+        elif not give:
+            steal_amount = target.inventory * (percent + random.uniform(0, 0.55)*random_control)
+            return steal_amount
 
     def give_to_person(self, amount=0):
         self.is_interacting, self.is_moving = True, False
         if (self.optimal_worker_give_pos or self.optimal_worker_steal_pos) is not None:
+            target_worker = self.world.workers[self.optimal_worker_give_pos[0]][self.optimal_worker_give_pos[1]]
+            if amount == 0:
+                amount = self.interaction_amount_calculations(target_worker, True, 0.1,1)
             if self.inventory >= amount:
-                target_worker = self.world.workers[self.optimal_worker_give_pos[0]][self.optimal_worker_give_pos[1]]
                 if target_worker and target_worker is not self:
                     self.inventory -= amount
                     target_worker.inventory += amount
@@ -304,6 +314,8 @@ class Worker:
         self.is_interacting, self.is_moving = True, False
         if (self.optimal_worker_give_pos or self.optimal_worker_steal_pos) is not None:
             target_worker = self.world.workers[self.optimal_worker_steal_pos[0]][self.optimal_worker_steal_pos[1]]
+            if amount == 0:
+                amount = self.interaction_amount_calculations(target_worker, False, 0.25,1)
             if target_worker and target_worker is not self:
                 if target_worker.inventory >= amount:
                     self.inventory += amount
@@ -504,9 +516,9 @@ class Worker:
 
         if self.is_interacting:
             # What behaviour when interacting
-            if self.need_give > self.need_steal and self.need_give > 0:
+            if self.need_give > self.need_steal and self.need_give > 0 and self.character_value > 0:
                 self.give_to_person()
-            elif self.need_give < self.need_steal and self.need_steal > 0:
+            elif self.need_give < self.need_steal and self.need_steal > 0 and self.character_value < 0:
                 self.take_from_person()
 
     # Other
