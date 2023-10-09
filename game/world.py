@@ -79,10 +79,12 @@ class World:
             ent = Lumbermill(self.world[grid_pos[0]][grid_pos[1]]["render_pos"], game)
         elif building_type == "stonemasonry":
             ent = Stonemasonry(self.world[grid_pos[0]][grid_pos[1]]["render_pos"], game)
-
+        
+        tile_data = self.world[grid_pos[0]][grid_pos[1]]
+        
         self.entities.append(ent)
         self.buildings[grid_pos[0]][grid_pos[1]] = ent
-        self.world[grid_pos[0]][grid_pos[1]]["collision"] = True
+        tile_data["collision"] = True
         self.collision_matrix[grid_pos[1]][grid_pos[0]] = 0
 
     def draw(self, screen, camera):

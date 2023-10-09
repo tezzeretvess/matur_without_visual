@@ -29,12 +29,13 @@ class Game:
 
         # world
         self.world = World(self.entities, self.hud, 50, 50, self.width, self.height)
-
-        for _ in range(2):
+        for _ in range(7):
+            self.create_random_lumbermill()
+        for _ in range(1):
             Worker(self.world.world[25][25], self.world)
 
-        for _ in range(5):
-            self.create_random_lumbermill()
+        
+        
 
         # camera
         self.camera = Camera(self.width, self.height)
@@ -61,7 +62,7 @@ class Game:
 
     def update(self):
         self.camera.update()
-
+    
         for entity in self.entities:
             entity.update()
 
