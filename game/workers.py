@@ -362,7 +362,7 @@ class Worker:
                 inventory_value *= 2  
 
             # Highest payoff building
-            if proximity_value > max_building_proximity or (proximity_value == max_building_proximity and inventory_value > max_building_inventory):
+            if inventory_value > max_building_inventory or (inventory_value == max_building_inventory and proximity_value > max_building_proximity):
                 max_building_proximity = proximity_value
                 max_building_inventory = inventory_value
                 # Update position best building
@@ -552,7 +552,7 @@ class Worker:
     
 
     def update(self):
-        #self.debug()
+        self.debug()
         self.brain()
         self.loot_building()
         self.move()
