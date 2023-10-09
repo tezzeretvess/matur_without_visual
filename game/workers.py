@@ -34,12 +34,14 @@ class Worker:
         self.need_give = 0  # control give behavior
         self.need_interaction = 0  # control interaction behavior
         # Character
-        self.character_value = 0  # -1 stealing / 1 giving
+        self.character_value = 1  # -1 stealing / 1 giving #CHANGE
 
         # Other
         self.optimal_building_pos = None
         self.optimal_worker_give_pos = None
         self.optimal_worker_steal_pos = None
+        self.interacting_behaviour = 0
+        self.target_worker = None
 
         self.create_path()
 
@@ -237,11 +239,9 @@ class Worker:
 
     def follow_person_behavior(self, behaviour=0):
         if behaviour == 1:  # Give behavior
-            self.is_interacting = False
             if self.optimal_worker_give_pos is not None:
                 self.create_path(self.find_valid_spot_around_destination(self.optimal_worker_give_pos))
         elif behaviour == 2:  # Steal behavior
-            self.is_interacting = False
             if self.optimal_worker_steal_pos is not None:
                 self.create_path(self.find_valid_spot_around_destination(self.optimal_worker_steal_pos))
         else:
@@ -250,7 +250,6 @@ class Worker:
     def go_to_building_behavior(self):
         # Go to the nearest building
         if self.optimal_building_pos is not None:
-            self.is_interacting = False
             self.create_path(self.find_valid_spot_around_destination(self.optimal_building_pos))
         else:
             self.moving_number = 4
@@ -368,9 +367,9 @@ class Worker:
         # Final need
         self.need_gather = max_building_proximity + max_building_inventory + (random.uniform(-0.1, 0.1) * random_weight)
         self.optimal_building_pos = best_building_position
-        print(self.need_gather)
+        
 
-    def need_m_give(self, proximity_weight=0.2, inventory_weight=0.8, random_weight=0, distance_limit=20):
+    def need_m_give(self, proximity_weight=0.2, inventory_weight=0.8, random_weight=0, distance_limit=30):
         # Informations
         _, _, people_positions, _, _, _, _ = self.util_return()
 
@@ -412,7 +411,7 @@ class Worker:
         self.need_give = max_payoff 
         self.optimal_worker_give_pos = optimal_worker_give_pos
 
-    def need_m_steal(self, proximity_weight=1.0, inventory_weight=1.0, random_weight=0, distance_limit=10):
+    def need_m_steal(self, proximity_weight=1.0, inventory_weight=1.0, random_weight=0, distance_limit=30):
         # Informations
         _, _, people_positions, _, _, _, _ = self.util_return()
 
@@ -504,8 +503,6 @@ class Worker:
                     self.calculate_distance_to(self.optimal_building_pos) <= 20+consume_limit # consume
                 )
             ):
-                self.is_interacting = False
-                self.is_moving = True
                 self.moving_number = 3  # Go to building behavior
                 self.go_to_building_behavior()
             else:
@@ -516,9 +513,9 @@ class Worker:
 
         if self.is_interacting:
             # What behaviour when interacting
-            if self.need_give > self.need_steal and self.need_give > 0 and self.character_value > 0:
+            if self.need_give > 0 and self.character_value > 0:
                 self.give_to_person()
-            elif self.need_give < self.need_steal and self.need_steal > 0 and self.character_value < 0:
+            elif self.need_steal > 0 and self.character_value < 0:
                 self.take_from_person()
 
     # Other
@@ -545,15 +542,15 @@ class Worker:
     # Updating
 
     def debug(self):
-        print("Gather need: " + str(self.need_gather) + " Interaction need: " + str(self.need_interaction) +
-              " Give need " + str(self.need_give) + " Steal need: " + str(self.need_steal))
-        # if self.is_interacting:
-        # print("IS INTERACTING")
+        print("Gather need: " + str(self.need_gather) + " Give need " + str(self.need_give) + " Steal need: " + str(self.need_steal))
+        print("Inventory:"+str(self.inventory))
+        if self.is_interacting:
+            print("IS INTERACTING")
         # print(str(self.moving_behaviour(self.moving_number)) +
         #      " Own pos " + str(self.tile["grid"]))
 
     def update(self):
-        # self.debug()
+        self.debug()
         self.brain()
         self.loot_building()
         self.move()

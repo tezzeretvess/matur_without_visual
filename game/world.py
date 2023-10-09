@@ -1,14 +1,12 @@
 import pygame as pg
 import random
-import noise # Download -> https://www.lfd.uci.edu/~gohlke/pythonlibs/#noise
+import noise  # Download -> https://www.lfd.uci.edu/~gohlke/pythonlibs/#noise
 from .settings import TILE_SIZE
-from .buildings import Lumbermill,Stonemasonry
-
+from .buildings import Lumbermill, Stonemasonry
 
 class World:
 
-    def __init__(self, resource_manager, entities, hud, grid_length_x, grid_length_y, width, height):
-        self.resource_manager = resource_manager
+    def __init__(self, entities, hud, grid_length_x, grid_length_y, width, height):
         self.entities = entities
         self.hud = hud
         self.grid_length_x = grid_length_x
@@ -30,7 +28,6 @@ class World:
 
         self.temp_tile = None
         self.examine_tile = None
-
 
     def update(self, camera):
         mouse_pos = pg.mouse.get_pos()
@@ -62,9 +59,9 @@ class World:
 
                 if mouse_action[0] and not tile_data["collision"]:
                     if selected_tile["name"] == "lumbermill":
-                        ent = Lumbermill(tile_data["render_pos"], self.resource_manager)
+                        ent = Lumbermill(tile_data["render_pos"],self.total_resources)
                     elif selected_tile["name"] == "stonemasonry":
-                        ent = Stonemasonry(tile_data["render_pos"], self.resource_manager)
+                        ent = Stonemasonry(tile_data["render_pos"],self.total_resources)
 
                     self.entities.append(ent)
                     self.buildings[grid_pos[0]][grid_pos[1]] = ent
@@ -77,6 +74,16 @@ class World:
                     self.examine_tile = grid_pos
                     self.hud.examined_tile = building
 
+    def create_building(self, grid_pos, building_type, game):
+        if building_type == "lumbermill":
+            ent = Lumbermill(self.world[grid_pos[0]][grid_pos[1]]["render_pos"], game)
+        elif building_type == "stonemasonry":
+            ent = Stonemasonry(self.world[grid_pos[0]][grid_pos[1]]["render_pos"], game)
+
+        self.entities.append(ent)
+        self.buildings[grid_pos[0]][grid_pos[1]] = ent
+        self.world[grid_pos[0]][grid_pos[1]]["collision"] = True
+        self.collision_matrix[grid_pos[1]][grid_pos[0]] = 0
 
     def draw(self, screen, camera):
         screen.blit(self.grass_tiles, (camera.scroll.x, camera.scroll.y))
@@ -148,7 +155,6 @@ class World:
             )
             screen.blit(temp_image, temp_position)
 
-
     def create_world(self):
         world = [
             [
@@ -163,7 +169,6 @@ class World:
                 self.grass_tiles.blit(self.tiles["block"], (render_pos[0] + self.grass_tiles.get_width() / 2, render_pos[1]))
 
         return world
-
 
     def grid_to_world(self, grid_x, grid_y):
         rect = [
@@ -227,7 +232,7 @@ class World:
         return grid_x, grid_y
 
     def load_images(self):
-        scaling_factor = 0.75 # Scale factor for assets
+        scaling_factor = 0.75  # Scale factor for assets
         image_files = {
             "building1": "assets/graphics/building01.png",
             "building2": "assets/graphics/building02.png",
@@ -242,16 +247,18 @@ class World:
         images = {}
         for name, file_path in image_files.items():
             image = pg.image.load(file_path).convert_alpha()
-            if(name == "block"):
-                images[name]=image
+            if (name == "block"):
+                images[name] = image
             else:
-                scaled_image = self.scale_image(image, w=image.get_width() * scaling_factor, h=image.get_height() * scaling_factor)
+                scaled_image = self.scale_image(image, w=image.get_width() * scaling_factor,
+                                                 h=image.get_height() * scaling_factor)
                 images[name] = scaled_image
         return images
 
     def can_place_tile(self, grid_pos):
         mouse_pos = pg.mouse.get_pos()
-        mouse_on_panel = any(rect.collidepoint(mouse_pos) for rect in [self.hud.resources_rect, self.hud.build_rect, self.hud.select_rect])
+        mouse_on_panel = any(rect.collidepoint(mouse_pos) for rect in
+                             [self.hud.resources_rect, self.hud.build_rect, self.hud.select_rect])
         world_bounds = (0 <= grid_pos[0] < self.grid_length_x) and (0 <= grid_pos[1] < self.grid_length_y)
         return world_bounds and not mouse_on_panel
 
