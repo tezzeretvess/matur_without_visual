@@ -8,6 +8,7 @@ from .hud import Hud
 from .resource_manager import ResourceManager
 from .workers import Worker
 import random
+import pandas as pd
 
 
 class Game:
@@ -16,6 +17,11 @@ class Game:
         self.screen = screen
         self.clock = clock
         self.width, self.height = self.screen.get_size()
+
+        # Controls
+        GIVING_WORKER_COUNT = 5
+        STEALING_WORKER_COUNT = 3
+        BUILDING_COUNT = 7
 
         # entities
         self.entities = []
@@ -30,10 +36,12 @@ class Game:
         # world
         self.world = World(self.entities, self.hud, 50,
                            50, self.width, self.height, self)
-        for _ in range(7):
+        for _ in range(BUILDING_COUNT):
             self.create_random_lumbermill()
-        for _ in range(5):
-            Worker(self.world.world[25][25], self.world)
+        for _ in range(GIVING_WORKER_COUNT):
+            Worker(self.world.world[25][25], self.world, 1, "GW" + str(_))
+        for _ in range(STEALING_WORKER_COUNT):
+            Worker(self.world.world[25][25], self.world, -1, "BW" + str(GIVING_WORKER_COUNT + _))
 
         # camera
         self.camera = Camera(self.width, self.height)
@@ -55,8 +63,56 @@ class Game:
                     self.quit_game()
 
     def quit_game(self):
+        print(self.entities)
+        self.export_data_to_excel()
+        self.export_inventory_to_excel()
         pg.quit()
         sys.exit()
+
+    def export_data_to_excel(self):
+        # Create a list to store the data
+        data = []
+        for entity in self.entities:
+            if isinstance(entity, Worker):
+                data.append([
+                    entity.id,
+                    entity.character_value,
+                    entity.building_looted_all_time,
+                    entity.interaction_count_all_time,
+                    entity.step_counter,
+                    entity.export_inventory
+                ])
+
+        # Create a DataFrame from the data
+        df = pd.DataFrame(data, columns=["ID","Character Value", "Building Looted", "Interaction Count", "Step Counter", "Inventory"])
+
+        # Save the DataFrame to an Excel file
+        df.to_excel(r'C:\Users\js200\OneDrive\Dokumente\Matur\DATA\game_data.xlsx', index=False)
+
+    def export_inventory_to_excel(self):
+        # Create a list to store the data
+        data = []
+        for entity in self.entities:
+            if isinstance(entity, Worker):
+                # Extract the id and inventory values
+                inventory_values = entity.export_inventory
+                row_data = [entity.id]
+
+                # Add "Inventory" as a header for the inventory values
+                row_data.extend(["Inventory"])
+
+                # Add each inventory value to the row
+                row_data.extend(inventory_values)
+
+                data.append(row_data)
+
+        # Create a DataFrame from the data
+        columns = ["ID", "Inventory"] + [f"Value_{i+1}" for i in range(len(inventory_values))]
+        df = pd.DataFrame(data, columns=columns)
+
+        # Save the DataFrame to an Excel file
+        df.to_excel(r'C:\Users\js200\OneDrive\Dokumente\Matur\DATA\inventory_data.xlsx', index=False)
+
 
     def update(self):
         self.camera.update()
