@@ -6,13 +6,14 @@ from .buildings import Lumbermill, Stonemasonry
 
 class World:
 
-    def __init__(self, entities, hud, grid_length_x, grid_length_y, width, height):
+    def __init__(self, entities, hud, grid_length_x, grid_length_y, width, height, game):
         self.entities = entities
         self.hud = hud
         self.grid_length_x = grid_length_x
         self.grid_length_y = grid_length_y
         self.width = width
         self.height = height
+        self.game = game #maybe remove
 
         self.perlin_scale = grid_length_x / 2
 
@@ -59,9 +60,9 @@ class World:
 
                 if mouse_action[0] and not tile_data["collision"]:
                     if selected_tile["name"] == "lumbermill":
-                        ent = Lumbermill(tile_data["render_pos"],self.total_resources)
+                        ent = Lumbermill(tile_data["render_pos"],self.game)
                     elif selected_tile["name"] == "stonemasonry":
-                        ent = Stonemasonry(tile_data["render_pos"],self.total_resources)
+                        ent = Stonemasonry(tile_data["render_pos"],self.game)
 
                     self.entities.append(ent)
                     self.buildings[grid_pos[0]][grid_pos[1]] = ent

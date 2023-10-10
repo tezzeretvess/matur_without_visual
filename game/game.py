@@ -28,14 +28,12 @@ class Game:
         self.hud = Hud(self.total_resources, self.width, self.height)
 
         # world
-        self.world = World(self.entities, self.hud, 50, 50, self.width, self.height)
+        self.world = World(self.entities, self.hud, 50,
+                           50, self.width, self.height, self)
         for _ in range(7):
             self.create_random_lumbermill()
-        for _ in range(1):
+        for _ in range(5):
             Worker(self.world.world[25][25], self.world)
-
-        
-        
 
         # camera
         self.camera = Camera(self.width, self.height)
@@ -62,7 +60,7 @@ class Game:
 
     def update(self):
         self.camera.update()
-    
+
         for entity in self.entities:
             entity.update()
 
@@ -74,9 +72,10 @@ class Game:
         self.screen.fill((0, 0, 0))
         self.world.draw(self.screen, self.camera)
         self.hud.draw(self.screen)
-        draw_text(self.screen, f'fps={round(self.clock.get_fps())}', 25, (255, 255, 255), (10, 10))
+        draw_text(
+            self.screen, f'fps={round(self.clock.get_fps())}', 25, (255, 255, 255), (10, 10))
         pg.display.flip()
-    
+
     # creates buildings randomly in the world
     def create_random_lumbermill(self):
         while True:
