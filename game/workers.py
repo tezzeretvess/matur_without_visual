@@ -15,6 +15,10 @@ class Worker:
         self.name = "worker"
         self.inventory = 0
 
+        # Controls
+        self.data_gather_frequency = 1000
+        self.movement_frequency = 10
+
         # Timer
         self.update_timer = pg.time.get_ticks()
         self.update_timer_decay = pg.time.get_ticks()
@@ -227,6 +231,7 @@ class Worker:
         self.world.workers[new_x][new_y] = self
         self.tile = self.world.world[new_x][new_y]
         self.step_counter += 1
+        
 
     def move(self):
         # Informations
@@ -235,7 +240,7 @@ class Worker:
         if self.is_moving:
             destination = self.moving_behaviour(self.moving_number)
             now = pg.time.get_ticks()
-            if now - self.move_timer > 10:
+            if now - self.move_timer > self.movement_frequency:
                 if not self.path:  # No current path
                     self.create_path(destination)
                     self.path_index = 0  # Reset path index
@@ -663,7 +668,7 @@ class Worker:
     
     def data_gather(self):
         now = pg.time.get_ticks()
-        if now - self.data_gather_timer >= 1000:
+        if now - self.data_gather_timer >= self.data_gather_frequency:
             self.data_gather_timer = now
             self.export_inventory.append(round(self.inventory))
             self.export_interaction_transfers_with_time.append(round(self.interaction_transfer))

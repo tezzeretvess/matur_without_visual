@@ -3,7 +3,6 @@ import sys
 from .world import World
 from .settings import TILE_SIZE
 from .utils import draw_text
-from .camera import Camera
 from .workers import Worker
 import random
 import pandas as pd
@@ -19,8 +18,8 @@ class Game:
         self.end_time = 60000
 
         # Controls
-        self.GIVING_WORKER_COUNT = 5
-        self.STEALING_WORKER_COUNT = 3
+        self.GIVING_WORKER_COUNT = 1
+        self.STEALING_WORKER_COUNT = 0
         self.BUILDING_COUNT = 7
         self.WORLD_SIZE = 50
 
@@ -34,7 +33,7 @@ class Game:
 
         # world
         self.world = World(self.entities, self.WORLD_SIZE,
-                           self.WORLD_SIZE, self.width, self.height, self)
+                           self.WORLD_SIZE, self)
         for _ in range(self.BUILDING_COUNT):
             self.create_random_lumbermill()
         for _ in range(self.GIVING_WORKER_COUNT):
@@ -43,8 +42,7 @@ class Game:
             Worker(self.world.world[25][25], self.world, -1,
                    "BW" + str(self.GIVING_WORKER_COUNT + _))
 
-        # camera
-        self.camera = Camera(self.width, self.height)
+        
 
     def run(self):
         self.playing = True
@@ -154,16 +152,13 @@ class Game:
         df.to_excel(writer, sheet_name=sheet_name, index=False)
 
     def update(self):
-        self.camera.update()
 
         for entity in self.entities:
             entity.update()
 
-        self.world.update(self.camera)
 
     def draw(self):
         self.screen.fill((0, 0, 0))
-        self.world.draw(self.screen, self.camera)
         draw_text(
             self.screen, f'fps={round(self.clock.get_fps())}', 25, (255, 255, 255), (10, 10))
         pg.display.flip()
