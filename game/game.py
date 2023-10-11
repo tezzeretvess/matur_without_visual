@@ -4,7 +4,6 @@ from .world import World
 from .settings import TILE_SIZE
 from .utils import draw_text
 from .camera import Camera
-from .hud import Hud
 from .workers import Worker
 import random
 import pandas as pd
@@ -31,11 +30,10 @@ class Game:
         # resource manager
         self.total_resources = 0
 
-        # hud
-        self.hud = Hud(self.total_resources, self.width, self.height)
+       
 
         # world
-        self.world = World(self.entities, self.hud, self.WORLD_SIZE,
+        self.world = World(self.entities, self.WORLD_SIZE,
                            self.WORLD_SIZE, self.width, self.height, self)
         for _ in range(self.BUILDING_COUNT):
             self.create_random_lumbermill()
@@ -161,14 +159,11 @@ class Game:
         for entity in self.entities:
             entity.update()
 
-        self.hud.update()
         self.world.update(self.camera)
-        self.hud.total_resources = self.total_resources
 
     def draw(self):
         self.screen.fill((0, 0, 0))
         self.world.draw(self.screen, self.camera)
-        self.hud.draw(self.screen)
         draw_text(
             self.screen, f'fps={round(self.clock.get_fps())}', 25, (255, 255, 255), (10, 10))
         pg.display.flip()

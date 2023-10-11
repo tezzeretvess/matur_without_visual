@@ -6,9 +6,8 @@ from .buildings import Lumbermill
 
 class World:
 
-    def __init__(self, entities, hud, grid_length_x, grid_length_y, width, height, game):
+    def __init__(self, entities, grid_length_x, grid_length_y, width, height, game):
         self.entities = entities
-        self.hud = hud
         self.grid_length_x = grid_length_x
         self.grid_length_y = grid_length_y
         self.width = width
@@ -34,45 +33,7 @@ class World:
         mouse_pos = pg.mouse.get_pos()
         mouse_action = pg.mouse.get_pressed()
 
-        if mouse_action[2]:
-            self.examine_tile = None
-            self.hud.examined_tile = None
-
-        self.temp_tile = None
-
-        selected_tile = self.hud.selected_tile
-
-        grid_pos = self.mouse_to_grid(mouse_pos[0], mouse_pos[1], camera.scroll)
-
-        if self.can_place_tile(grid_pos):
-            if selected_tile is not None:
-                img = selected_tile["image"].copy()
-                img.set_alpha(100)
-
-                tile_data = self.world[grid_pos[0]][grid_pos[1]]
-
-                self.temp_tile = {
-                    "image": img,
-                    "render_pos": tile_data["render_pos"],
-                    "iso_poly": tile_data["iso_poly"],
-                    "collision": tile_data["collision"]
-                }
-
-                if mouse_action[0] and not tile_data["collision"]:
-                    if selected_tile["name"] == "lumbermill":
-                        ent = Lumbermill(tile_data["render_pos"],self.game)
-                    
-
-                    self.entities.append(ent)
-                    self.buildings[grid_pos[0]][grid_pos[1]] = ent
-                    tile_data["collision"] = True
-                    self.collision_matrix[grid_pos[1]][grid_pos[0]] = 0
-                    self.hud.selected_tile = None
-            else:
-                building = self.buildings[grid_pos[0]][grid_pos[1]]
-                if mouse_action[0] and building is not None:
-                    self.examine_tile = grid_pos
-                    self.hud.examined_tile = building
+        
 
     def create_building(self, grid_pos, game):
         
@@ -257,10 +218,8 @@ class World:
 
     def can_place_tile(self, grid_pos):
         mouse_pos = pg.mouse.get_pos()
-        mouse_on_panel = any(rect.collidepoint(mouse_pos) for rect in
-                             [self.hud.resources_rect, self.hud.build_rect, self.hud.select_rect])
         world_bounds = (0 <= grid_pos[0] < self.grid_length_x) and (0 <= grid_pos[1] < self.grid_length_y)
-        return world_bounds and not mouse_on_panel
+        return world_bounds 
 
     def scale_image(self, image, w=None, h=None):
         if w is None and h is None:
