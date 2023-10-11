@@ -6,22 +6,29 @@ from .utils import draw_text
 from .workers import Worker
 import random
 import pandas as pd
+import os
+import datetime
+import winsound
 
 
 class Game:
 
-    def __init__(self, screen, clock):
+    def __init__(self, screen, clock, give_worker_count, steal_worker_count):
         self.screen = screen
         self.clock = clock
         self.width, self.height = self.screen.get_size()
         self.start_time = pg.time.get_ticks()
-        self.end_time = 1(*1000*60)  # minutes to ms
+        self.end_time = 1*(1000*60)  # minutes to ms
+        save_directory = r'C:\Users\js200\OneDrive\Dokumente\Matur\DATA'
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        self.excel_filename = os.path.join(save_directory, f'game_data_{timestamp}.xlsx')
 
         # Controls
-        self.GIVING_WORKER_COUNT = 1
-        self.STEALING_WORKER_COUNT = 0
-        self.BUILDING_COUNT = 7
+        self.GIVING_WORKER_COUNT = give_worker_count
+        self.STEALING_WORKER_COUNT = steal_worker_count
+        self.BUILDING_COUNT = 20
         self.WORLD_SIZE = 100
+        self.export_items_count = 600
 
         # entities
         self.entities = []
@@ -50,7 +57,7 @@ class Game:
 
     def handle_events(self):
         now = pg.time.get_ticks()
-        if now - self.start_time >= self.end_time:
+        if self.worker_has_inventory_count(): #now - self.start_time >= self.end_time
             self.quit_game()
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -60,7 +67,7 @@ class Game:
                     self.quit_game()
 
     def quit_game(self):
-        while True:
+        while False: # User input turned off
             user_input = input(
                 "Do you want to save the data? (y/n): ").strip().lower()
             if user_input == 'y':
@@ -70,13 +77,17 @@ class Game:
                 break
             else:
                 break
+        self.export_data_to_excel()
+        print("FINISHED " + str((pg.time.get_ticks() - self.start_time) / 1000) + " seconds")
+        winsound.Beep(500, 1000)
         pg.quit()
         sys.exit()
 
     def export_data_to_excel(self):
         # Create a single Excel writer to manage the file
-        with pd.ExcelWriter(r'C:\Users\js200\OneDrive\Dokumente\Matur\DATA\game_data.xlsx', engine='xlsxwriter') as writer:
+        with pd.ExcelWriter(self.excel_filename, engine='xlsxwriter') as writer:
             data = []
+
             for entity in self.entities:
                 if isinstance(entity, Worker):
                     data.append([
@@ -86,7 +97,7 @@ class Game:
                         entity.interaction_count_all_time,
                         entity.interaction_transfer_all_time,
                         entity.step_counter,
-                        entity.export_inventory,
+                        entity.export_inventory,  # Modified to use the adjusted inventory_values
                         entity.export_interaction_with_time,
                         entity.export_interaction_transfers_with_time
                     ])
@@ -96,20 +107,31 @@ class Game:
                     "Step counter", "Inventory", "Interactions with timer", "Interactions transfers with timer"]
             ] + data)
 
-            data = []
-            for entity in self.entities:
-                if isinstance(entity, Worker):
-                    inventory_values = entity.export_inventory
-                    row_data = [entity.id]
-                    row_data.extend(["Inventory"])
-                    row_data.extend(inventory_values)
-                    data.append(row_data)
             self.export_sheet_data(writer, "general_game_data", [
                 ["Total Worker", "Nice worker", "Bad worker", "Total building",
                     "Total resources produced", "Duration", "World size"],
                 [self.GIVING_WORKER_COUNT + self.STEALING_WORKER_COUNT, self.GIVING_WORKER_COUNT, self.STEALING_WORKER_COUNT,
                     self.BUILDING_COUNT, self.total_resources, self.end_time / 1000, self.WORLD_SIZE]
             ])
+
+            data = []
+            for entity in self.entities:
+                if isinstance(entity, Worker):
+
+                    inventory_values = entity.export_inventory
+
+                    # Ensure inventory_values has exactly 32 items, padding with the last item
+                    while len(inventory_values) < self.export_items_count:
+                        inventory_values.append(inventory_values[-1])
+
+                    inventory_values = inventory_values[:self.export_items_count]
+
+                    row_data = [entity.id]
+                    row_data.extend(["Inventory"])
+                    row_data.extend(inventory_values)
+                    data.append(row_data)
+
+            
             self.export_sheet_data(writer, "inventory_data", [
                 ["ID", "Inventory"] +
                 [i+1 for i in range(len(inventory_values))]
@@ -119,6 +141,9 @@ class Game:
             for entity in self.entities:
                 if isinstance(entity, Worker):
                     interaction_values = entity.export_interaction_with_time
+                    while len(interaction_values) < self.export_items_count:
+                        interaction_values.append(interaction_values[-1])
+                    interaction_values = interaction_values[:self.export_items_count]
                     row_data = [entity.id]
                     row_data.extend(["Interactions"])
                     row_data.extend(interaction_values)
@@ -132,16 +157,37 @@ class Game:
             data = []
             for entity in self.entities:
                 if isinstance(entity, Worker):
-                    interaction_values = entity.export_interaction_transfers_with_time
+                    interaction_transfer_values = entity.export_interaction_transfers_with_time
+                    while len(interaction_transfer_values) < self.export_items_count:
+                        interaction_transfer_values.append(interaction_transfer_values[-1])
+                    interaction_transfer_values = interaction_transfer_values[:self.export_items_count]
                     row_data = [entity.id]
                     row_data.extend(["Interaction transfer amounts"])
-                    row_data.extend(interaction_values)
+                    row_data.extend(interaction_transfer_values)
                     data.append(row_data)
 
             self.export_sheet_data(writer, "interaction_transfer_data", [
                 ["ID", "Interaction transfer amounts"] +
-                [i+1 for i in range(len(interaction_values))]
+                [i+1 for i in range(len(interaction_transfer_values))]
             ] + data)
+
+            data = []
+            for entity in self.entities:
+                if isinstance(entity, Worker):
+                    step_values = entity.export_steps_with_time
+                    while len(step_values) < self.export_items_count:
+                        step_values.append(step_values[-1])
+                    step_values = step_values[:self.export_items_count]
+                    row_data = [entity.id]
+                    row_data.extend(["Steps with time"])
+                    row_data.extend(step_values)
+                    data.append(row_data)
+
+            self.export_sheet_data(writer, "Steps with time", [
+                ["ID", "Steps with time"] +
+                [i+1 for i in range(len(step_values))]
+            ] + data)
+
 
     def export_sheet_data(self, writer, sheet_name, data):
         df = pd.DataFrame(data[1:], columns=data[0])
@@ -184,3 +230,12 @@ class Game:
     def distance(self, x1, y1, x2, y2):
         # Calculate the Euclidean distance between two grid positions
         return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
+
+    def worker_has_inventory_count(self):
+        worker_count = 0  # Initialize a count for the workers
+        for entity in self.entities:
+            if isinstance(entity, Worker):
+                if len(entity.export_inventory) < self.export_items_count:
+                    return False  # Return False if any worker doesn't meet the condition
+                worker_count += 1  # Increment the worker count
+        return worker_count == (self.GIVING_WORKER_COUNT + self.STEALING_WORKER_COUNT)  

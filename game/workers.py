@@ -15,20 +15,12 @@ class Worker:
         self.name = "worker"
         self.inventory = 0
 
-        # Controls
-        self.data_gather_frequency = 1000
-        self.movement_frequency = 10
-
         # Timer
         self.update_timer = pg.time.get_ticks()
         self.update_timer_decay = pg.time.get_ticks()
         self.move_timer = pg.time.get_ticks()
         self.data_gather_timer = pg.time.get_ticks()
 
-        image = pg.image.load("assets/graphics/worker.png").convert_alpha()
-        scaled_width = image.get_width()
-        scaled_height = image.get_height()
-        self.image = pg.transform.scale(image, (scaled_width, scaled_height))
 
         self.tile = tile
         self.world.workers[tile["grid"][0]][tile["grid"][1]] = self
@@ -45,19 +37,21 @@ class Worker:
         self.building_looted_count = 0
         self.building_looted_count_limit = 3
 
-        # Export 
-        
+        # Export
+
         self.id = id
-        self.character_value = character # -1 stealing / 1 giving 
+        self.character_value = character  # -1 stealing / 1 giving
         self.building_looted_all_time = 0
         self.interaction_count_all_time = 0
         self.interaction_count_with_timer = 0
         self.interaction_transfer = 0
         self.interaction_transfer_all_time = 0
         self.step_counter = 0
+        self.step_counter_with_timer = 0
         self.export_inventory = []
         self.export_interaction_with_time = []
         self.export_interaction_transfers_with_time = []
+        self.export_steps_with_time = []
 
         # Need variabeles
         self.need_gather = 0  # control gather behavior
@@ -231,7 +225,8 @@ class Worker:
         self.world.workers[new_x][new_y] = self
         self.tile = self.world.world[new_x][new_y]
         self.step_counter += 1
-        
+        if old_x == new_x and old_y == new_y:
+            self.step_counter_with_timer += 1
 
     def move(self):
         # Informations
@@ -240,7 +235,7 @@ class Worker:
         if self.is_moving:
             destination = self.moving_behaviour(self.moving_number)
             now = pg.time.get_ticks()
-            if now - self.move_timer > self.movement_frequency:
+            if now - self.move_timer > 10:
                 if not self.path:  # No current path
                     self.create_path(destination)
                     self.path_index = 0  # Reset path index
@@ -402,7 +397,8 @@ class Worker:
             if target_worker and target_worker is not self:
                 if target_worker.inventory >= amount:
                     # Inventory Transfer
-                    self.inventory += amount*random.uniform(0.8, 0.95) # Loss logic
+                    self.inventory += amount * \
+                        random.uniform(0.8, 0.95)  # Loss logic
                     target_worker.inventory -= amount
                     # Statistics
                     self.interaction_count += 1
@@ -665,21 +661,26 @@ class Worker:
             print("IS BEING INTERACTED")
         if self.is_interacting:
             print("INTERACTS")
-    
+
     def data_gather(self):
         now = pg.time.get_ticks()
-        if now - self.data_gather_timer >= self.data_gather_frequency:
+        if now - self.data_gather_timer >= 1000:
             self.data_gather_timer = now
+
             self.export_inventory.append(round(self.inventory))
-            self.export_interaction_transfers_with_time.append(round(self.interaction_transfer))
-            self.export_interaction_with_time.append(self.interaction_count_with_timer)
+            self.export_interaction_transfers_with_time.append(
+                round(self.interaction_transfer))
+            self.export_interaction_with_time.append(
+                self.interaction_count_with_timer)
+            self.export_steps_with_time.append(self.step_counter_with_timer)
+            
+            # Reset
+            self.step_counter_with_timer = 0
             self.interaction_count_with_timer = 0
             self.interaction_transfer = 0
 
-
-
     def update(self):
-        #self.debug()
+        # self.debug()
         self.brain()
         self.loot_building()
         self.move()
