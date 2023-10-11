@@ -2,7 +2,7 @@ import pygame as pg
 import random
 import noise  # Download -> https://www.lfd.uci.edu/~gohlke/pythonlibs/#noise
 from .settings import TILE_SIZE
-from .buildings import Lumbermill, Stonemasonry
+from .buildings import Lumbermill
 
 class World:
 
@@ -61,8 +61,7 @@ class World:
                 if mouse_action[0] and not tile_data["collision"]:
                     if selected_tile["name"] == "lumbermill":
                         ent = Lumbermill(tile_data["render_pos"],self.game)
-                    elif selected_tile["name"] == "stonemasonry":
-                        ent = Stonemasonry(tile_data["render_pos"],self.game)
+                    
 
                     self.entities.append(ent)
                     self.buildings[grid_pos[0]][grid_pos[1]] = ent
@@ -75,11 +74,9 @@ class World:
                     self.examine_tile = grid_pos
                     self.hud.examined_tile = building
 
-    def create_building(self, grid_pos, building_type, game):
-        if building_type == "lumbermill":
-            ent = Lumbermill(self.world[grid_pos[0]][grid_pos[1]]["render_pos"], game)
-        elif building_type == "stonemasonry":
-            ent = Stonemasonry(self.world[grid_pos[0]][grid_pos[1]]["render_pos"], game)
+    def create_building(self, grid_pos, game):
+        
+        ent = Lumbermill(self.world[grid_pos[0]][grid_pos[1]]["render_pos"], game)
         
         tile_data = self.world[grid_pos[0]][grid_pos[1]]
         

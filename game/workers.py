@@ -13,7 +13,6 @@ class Worker:
         self.world = world
         self.world.entities.append(self)
         self.name = "worker"
-        self.id = id
         self.inventory = 0
 
         # Timer
@@ -43,11 +42,18 @@ class Worker:
         self.building_looted_count_limit = 3
 
         # Export 
+        
+        self.id = id
         self.character_value = character # -1 stealing / 1 giving 
         self.building_looted_all_time = 0
         self.interaction_count_all_time = 0
+        self.interaction_count_with_timer = 0
+        self.interaction_transfer = 0
+        self.interaction_transfer_all_time = 0
         self.step_counter = 0
         self.export_inventory = []
+        self.export_interaction_with_time = []
+        self.export_interaction_transfers_with_time = []
 
         # Need variabeles
         self.need_gather = 0  # control gather behavior
@@ -229,7 +235,7 @@ class Worker:
         if self.is_moving:
             destination = self.moving_behaviour(self.moving_number)
             now = pg.time.get_ticks()
-            if now - self.move_timer > 100:
+            if now - self.move_timer > 10:
                 if not self.path:  # No current path
                     self.create_path(destination)
                     self.path_index = 0  # Reset path index
@@ -364,9 +370,12 @@ class Worker:
                     # Inventory transfer
                     self.inventory -= amount
                     target_worker.inventory += amount
+                    # Statistics
                     self.interaction_count += 1
                     self.interaction_count_all_time += 1
-                    print("Gifted: " + str(amount))
+                    self.interaction_count_with_timer += 1
+                    self.interaction_transfer += amount
+                    self.interaction_transfer_all_time += amount
                     # Reset of status
                     self.is_interacting, self.is_moving = False, True
                     target_worker.is_being_interacted = False
@@ -390,9 +399,12 @@ class Worker:
                     # Inventory Transfer
                     self.inventory += amount*random.uniform(0.8, 0.95) # Loss logic
                     target_worker.inventory -= amount
+                    # Statistics
                     self.interaction_count += 1
                     self.interaction_count_all_time += 1
-                    print("Stolen: " + str(amount))
+                    self.interaction_count_with_timer += 1
+                    self.interaction_transfer += amount
+                    self.interaction_transfer_all_time += amount
                     # Reset of status
                     self.is_interacting, self.is_moving = False, True
                     target_worker.is_being_interacted = False
@@ -651,9 +663,13 @@ class Worker:
     
     def data_gather(self):
         now = pg.time.get_ticks()
-        if now - self.data_gather_timer > 10000:
+        if now - self.data_gather_timer >= 1000:
             self.data_gather_timer = now
             self.export_inventory.append(round(self.inventory))
+            self.export_interaction_transfers_with_time.append(round(self.interaction_transfer))
+            self.export_interaction_with_time.append(self.interaction_count_with_timer)
+            self.interaction_count_with_timer = 0
+            self.interaction_transfer = 0
 
 
 

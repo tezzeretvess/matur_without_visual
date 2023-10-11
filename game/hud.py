@@ -16,7 +16,7 @@ class Hud:
 
         # Building HUD
         self.build_surface = pg.Surface((width * 0.15, height * 0.25), pg.SRCALPHA)
-        self.build_rect = self.build_surface.get_rect(topleft=(width * 0.84, height * 0.74))
+        self.build_rect = self.build_surface.get_rect(topleft=(width * 0.01, height * 0.04))
         self.build_surface.fill(self.hud_colour)
 
         # Select HUD
@@ -31,7 +31,7 @@ class Hud:
         self.examined_tile = None
 
     def create_build_hud(self):
-        render_pos = [self.width * 0.84 + 10, self.height * 0.74 + 10]
+        render_pos = [self.width * 0.01 + 10, self.height * 0.04 + 10]
         object_width = self.build_surface.get_width() // 5
         tiles = []
 
@@ -93,8 +93,7 @@ class Hud:
     def load_images(self):
         images = {}
         image_files = {
-            "lumbermill": "assets/graphics/building01.png",
-            "stonemasonry": "assets/graphics/building02.png"
+            "lumbermill": "assets/graphics/building01.png"
         }
 
         for name, file_path in image_files.items():

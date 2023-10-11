@@ -5,7 +5,6 @@ from .settings import TILE_SIZE
 from .utils import draw_text
 from .camera import Camera
 from .hud import Hud
-from .resource_manager import ResourceManager
 from .workers import Worker
 import random
 import pandas as pd
@@ -17,31 +16,34 @@ class Game:
         self.screen = screen
         self.clock = clock
         self.width, self.height = self.screen.get_size()
+        self.start_time = pg.time.get_ticks()
+        self.end_time = 60000
 
         # Controls
-        GIVING_WORKER_COUNT = 5
-        STEALING_WORKER_COUNT = 3
-        BUILDING_COUNT = 7
+        self.GIVING_WORKER_COUNT = 5
+        self.STEALING_WORKER_COUNT = 3
+        self.BUILDING_COUNT = 7
+        self.WORLD_SIZE = 50
 
         # entities
         self.entities = []
 
         # resource manager
-        self.resource_manager = ResourceManager()
         self.total_resources = 0
 
         # hud
         self.hud = Hud(self.total_resources, self.width, self.height)
 
         # world
-        self.world = World(self.entities, self.hud, 50,
-                           50, self.width, self.height, self)
-        for _ in range(BUILDING_COUNT):
+        self.world = World(self.entities, self.hud, self.WORLD_SIZE,
+                           self.WORLD_SIZE, self.width, self.height, self)
+        for _ in range(self.BUILDING_COUNT):
             self.create_random_lumbermill()
-        for _ in range(GIVING_WORKER_COUNT):
+        for _ in range(self.GIVING_WORKER_COUNT):
             Worker(self.world.world[25][25], self.world, 1, "GW" + str(_))
-        for _ in range(STEALING_WORKER_COUNT):
-            Worker(self.world.world[25][25], self.world, -1, "BW" + str(GIVING_WORKER_COUNT + _))
+        for _ in range(self.STEALING_WORKER_COUNT):
+            Worker(self.world.world[25][25], self.world, -1,
+                   "BW" + str(self.GIVING_WORKER_COUNT + _))
 
         # camera
         self.camera = Camera(self.width, self.height)
@@ -55,6 +57,9 @@ class Game:
             self.draw()
 
     def handle_events(self):
+        now = pg.time.get_ticks()
+        if now - self.start_time >= self.end_time:
+            self.quit_game()
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.quit_game()
@@ -63,56 +68,92 @@ class Game:
                     self.quit_game()
 
     def quit_game(self):
-        print(self.entities)
-        self.export_data_to_excel()
-        self.export_inventory_to_excel()
+        while True:
+            user_input = input(
+                "Do you want to save the data? (y/n): ").strip().lower()
+            if user_input == 'y':
+                self.export_data_to_excel()
+                break
+            elif user_input == 'n':
+                break
+            else:
+                break
         pg.quit()
         sys.exit()
 
     def export_data_to_excel(self):
-        # Create a list to store the data
-        data = []
-        for entity in self.entities:
-            if isinstance(entity, Worker):
-                data.append([
-                    entity.id,
-                    entity.character_value,
-                    entity.building_looted_all_time,
-                    entity.interaction_count_all_time,
-                    entity.step_counter,
-                    entity.export_inventory
-                ])
+        # Create a single Excel writer to manage the file
+        with pd.ExcelWriter(r'C:\Users\js200\OneDrive\Dokumente\Matur\DATA\game_data.xlsx', engine='xlsxwriter') as writer:
+            data = []
+            for entity in self.entities:
+                if isinstance(entity, Worker):
+                    data.append([
+                        entity.id,
+                        entity.character_value,
+                        entity.building_looted_all_time,
+                        entity.interaction_count_all_time,
+                        entity.interaction_transfer_all_time,
+                        entity.step_counter,
+                        entity.export_inventory,
+                        entity.export_interaction_with_time,
+                        entity.export_interaction_transfers_with_time
+                    ])
 
-        # Create a DataFrame from the data
-        df = pd.DataFrame(data, columns=["ID","Character Value", "Building Looted", "Interaction Count", "Step Counter", "Inventory"])
+            self.export_sheet_data(writer, "game_data", [
+                ["ID", "Character value", "Building looted", "Interaction count", "Interaction transfer",
+                    "Step counter", "Inventory", "Interactions with timer", "Interactions transfers with timer"]
+            ] + data)
 
-        # Save the DataFrame to an Excel file
-        df.to_excel(r'C:\Users\js200\OneDrive\Dokumente\Matur\DATA\game_data.xlsx', index=False)
+            data = []
+            for entity in self.entities:
+                if isinstance(entity, Worker):
+                    inventory_values = entity.export_inventory
+                    row_data = [entity.id]
+                    row_data.extend(["Inventory"])
+                    row_data.extend(inventory_values)
+                    data.append(row_data)
+            self.export_sheet_data(writer, "general_game_data", [
+                ["Total Worker", "Nice worker", "Bad worker", "Total building",
+                    "Total resources produced", "Duration", "World size"],
+                [self.GIVING_WORKER_COUNT + self.STEALING_WORKER_COUNT, self.GIVING_WORKER_COUNT, self.STEALING_WORKER_COUNT,
+                    self.BUILDING_COUNT, self.total_resources, self.end_time / 1000, self.WORLD_SIZE]
+            ])
+            self.export_sheet_data(writer, "inventory_data", [
+                ["ID", "Inventory"] +
+                [i+1 for i in range(len(inventory_values))]
+            ] + data)
 
-    def export_inventory_to_excel(self):
-        # Create a list to store the data
-        data = []
-        for entity in self.entities:
-            if isinstance(entity, Worker):
-                # Extract the id and inventory values
-                inventory_values = entity.export_inventory
-                row_data = [entity.id]
+            data = []
+            for entity in self.entities:
+                if isinstance(entity, Worker):
+                    interaction_values = entity.export_interaction_with_time
+                    row_data = [entity.id]
+                    row_data.extend(["Interactions"])
+                    row_data.extend(interaction_values)
+                    data.append(row_data)
 
-                # Add "Inventory" as a header for the inventory values
-                row_data.extend(["Inventory"])
+            self.export_sheet_data(writer, "interactions_with_time_data", [
+                ["ID", "Interactions"] +
+                [i+1 for i in range(len(interaction_values))]
+            ] + data)
 
-                # Add each inventory value to the row
-                row_data.extend(inventory_values)
+            data = []
+            for entity in self.entities:
+                if isinstance(entity, Worker):
+                    interaction_values = entity.export_interaction_transfers_with_time
+                    row_data = [entity.id]
+                    row_data.extend(["Interaction transfer amounts"])
+                    row_data.extend(interaction_values)
+                    data.append(row_data)
 
-                data.append(row_data)
+            self.export_sheet_data(writer, "interaction_transfer_data", [
+                ["ID", "Interaction transfer amounts"] +
+                [i+1 for i in range(len(interaction_values))]
+            ] + data)
 
-        # Create a DataFrame from the data
-        columns = ["ID", "Inventory"] + [f"Value_{i+1}" for i in range(len(inventory_values))]
-        df = pd.DataFrame(data, columns=columns)
-
-        # Save the DataFrame to an Excel file
-        df.to_excel(r'C:\Users\js200\OneDrive\Dokumente\Matur\DATA\inventory_data.xlsx', index=False)
-
+    def export_sheet_data(self, writer, sheet_name, data):
+        df = pd.DataFrame(data[1:], columns=data[0])
+        df.to_excel(writer, sheet_name=sheet_name, index=False)
 
     def update(self):
         self.camera.update()
@@ -145,7 +186,7 @@ class Game:
                 and self.is_far_from_existing_buildings(x, y, min_distance=5)
             ):
                 # Create the Lumbermill at the chosen position
-                self.world.create_building((x, y), "lumbermill", self)
+                self.world.create_building((x, y), self)
                 break
 
     def is_far_from_existing_buildings(self, x, y, min_distance):
