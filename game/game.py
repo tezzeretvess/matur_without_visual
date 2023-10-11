@@ -15,21 +15,19 @@ class Game:
         self.clock = clock
         self.width, self.height = self.screen.get_size()
         self.start_time = pg.time.get_ticks()
-        self.end_time = 60000
+        self.end_time = 1(*1000*60)  # minutes to ms
 
         # Controls
         self.GIVING_WORKER_COUNT = 1
         self.STEALING_WORKER_COUNT = 0
         self.BUILDING_COUNT = 7
-        self.WORLD_SIZE = 50
+        self.WORLD_SIZE = 100
 
         # entities
         self.entities = []
 
         # resource manager
         self.total_resources = 0
-
-       
 
         # world
         self.world = World(self.entities, self.WORLD_SIZE,
@@ -41,8 +39,6 @@ class Game:
         for _ in range(self.STEALING_WORKER_COUNT):
             Worker(self.world.world[25][25], self.world, -1,
                    "BW" + str(self.GIVING_WORKER_COUNT + _))
-
-        
 
     def run(self):
         self.playing = True
@@ -155,7 +151,6 @@ class Game:
 
         for entity in self.entities:
             entity.update()
-
 
     def draw(self):
         self.screen.fill((0, 0, 0))
