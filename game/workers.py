@@ -295,10 +295,10 @@ class Worker:
         self.check_interacting_status()
         if self.need_interaction > 1:
             if (self.optimal_worker_give_pos or self.optimal_worker_steal_pos) is not None:
-                if self.interacting_behaviour == 1:  # Give behaviour
+                if self.interacting_behaviour == 1 and self.optimal_worker_give_pos is not None:  # Give behaviour
                     self.target_worker = self.world.workers[self.optimal_worker_give_pos[0]
                                                             ][self.optimal_worker_give_pos[1]]
-                elif self.interacting_behaviour == 2:  # Steal behaviour
+                elif self.interacting_behaviour == 2 and self.optimal_worker_steal_pos is not None:  # Steal behaviour
                     self.target_worker = self.world.workers[self.optimal_worker_steal_pos[0]
                                                             ][self.optimal_worker_steal_pos[1]]
 
