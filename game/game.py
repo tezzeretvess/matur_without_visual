@@ -28,7 +28,7 @@ class Game:
         self.STEALING_WORKER_COUNT = steal_worker_count
         self.BUILDING_COUNT = 20
         self.WORLD_SIZE = 100
-        self.export_items_count = 600
+        self.export_items_count = 10
 
         # entities
         self.entities = []
@@ -56,7 +56,8 @@ class Game:
             self.draw()
 
     def handle_events(self):
-        now = pg.time.get_ticks()
+        """
+        #now = pg.time.get_ticks()
         if self.worker_has_inventory_count(): #now - self.start_time >= self.end_time
             self.quit_game()
         for event in pg.event.get():
@@ -65,23 +66,27 @@ class Game:
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
                     self.quit_game()
+                    """
+        if self.worker_has_inventory_count():  # Check if the game should end
+            self.quit_game()
+            self.playing = False
+
+
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                pg.quit()
+                sys.exit()
+            elif event.type == pg.KEYDOWN:
+                if event.key == pg.K_ESCAPE:
+                    pg.quit()
+                    sys.exit()
 
     def quit_game(self):
-        while False: # User input turned off
-            user_input = input(
-                "Do you want to save the data? (y/n): ").strip().lower()
-            if user_input == 'y':
-                self.export_data_to_excel()
-                break
-            elif user_input == 'n':
-                break
-            else:
-                break
         self.export_data_to_excel()
         print("FINISHED " + str((pg.time.get_ticks() - self.start_time) / 1000) + " seconds")
         winsound.Beep(500, 1000)
-        pg.quit()
-        sys.exit()
+        #pg.quit()
+        #sys.exit()
 
     def export_data_to_excel(self):
         # Create a single Excel writer to manage the file
@@ -232,10 +237,31 @@ class Game:
         return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
 
     def worker_has_inventory_count(self):
-        worker_count = 0  # Initialize a count for the workers
+        inventory_lengths = []  # Initialize a list to store the lengths
+        inventory_values = []  # Initialize a list to store the flattened inventory values
+
         for entity in self.entities:
             if isinstance(entity, Worker):
-                if len(entity.export_inventory) < self.export_items_count:
-                    return False  # Return False if any worker doesn't meet the condition
-                worker_count += 1  # Increment the worker count
-        return worker_count == (self.GIVING_WORKER_COUNT + self.STEALING_WORKER_COUNT)  
+                inventory = entity.export_inventory
+                inventory_values.extend(inventory)  # Flatten the inventory values
+                inventory_lengths.append(len(inventory))  # Store the length
+
+        if not inventory_values:
+            # Handle the case where there are no valid inventory values
+            return False
+
+        min_value = min(inventory_lengths)
+
+        if min_value >= self.export_items_count:
+            progress_percentage = (min_value / self.export_items_count) * 100
+            print(f"Progress: {progress_percentage}")
+            return True
+
+
+        if min_value % 10 == 0:
+            progress_percentage = (min_value / self.export_items_count) * 100
+            print(f"Progress: {progress_percentage}")
+
+        return False
+
+        
