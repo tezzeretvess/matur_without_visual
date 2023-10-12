@@ -32,9 +32,9 @@ def main():
         # The game has ended, reduce give_worker_count by 1
         give_worker_count -= 1
         steal_worker_count += 1
-        print("Simulations left: " + str(give_worker_count))
+        print("Simulations left: " + str(give_worker_count) + " Good Worker: " + str(give_worker_count) + " Bad Worker: " + str(steal_worker_count))
         # Check if the game should continue with a lower give_worker_count
-        if give_worker_count < 0 or steal_worker_count > 20:
+        if give_worker_count < 10 or steal_worker_count > 20:
             winsound.Beep(1000, 300)
             winsound.Beep(400, 1000)
             print("Simulation finished")

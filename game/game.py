@@ -22,13 +22,14 @@ class Game:
         save_directory = r'C:\Users\js200\OneDrive\Dokumente\Matur\DATA'
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.excel_filename = os.path.join(save_directory, f'game_data_{timestamp}.xlsx')
+        self.last_min_value = 0
 
         # Controls
         self.GIVING_WORKER_COUNT = give_worker_count
         self.STEALING_WORKER_COUNT = steal_worker_count
         self.BUILDING_COUNT = 20
         self.WORLD_SIZE = 100
-        self.export_items_count = 10
+        self.export_items_count = 600
 
         # entities
         self.entities = []
@@ -258,9 +259,10 @@ class Game:
             return True
 
 
-        if min_value % 10 == 0:
-            progress_percentage = (min_value / self.export_items_count) * 100
-            print(f"Progress: {progress_percentage}")
+        if min_value % 10 == 0 and not min_value == self.last_min_value:
+            progress_percentage = round((min_value / self.export_items_count) * 100)
+            self.last_min_value = min_value
+            print(f"Progress: {progress_percentage}%")
 
         return False
 

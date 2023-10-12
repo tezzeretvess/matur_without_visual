@@ -492,7 +492,7 @@ class Worker:
                 x, y = person_pos
                 person = self.world.workers[x][y]
 
-                if person is not None and person is not self and person is not self.last_worker_interacted:
+                if person is not None and person is not self and person is not self.last_worker_interacted and person.character_value == 1: # and person.character_value == 1 Only give someone if they would also
                     distance = pg.math.Vector2(self.tile["grid"]).distance_to(
                         pg.math.Vector2(person.tile["grid"]))
 
