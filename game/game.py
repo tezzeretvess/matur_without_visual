@@ -19,7 +19,7 @@ class Game:
         self.width, self.height = self.screen.get_size()
         self.start_time = pg.time.get_ticks()
         self.end_time = 1*(1000*60)  # minutes to ms
-        save_directory = r'C:\Users\js200\OneDrive\Dokumente\Matur\DATA'
+        save_directory = r'C:\Users\js200\OneDrive\Dokumente\Matur\DATA\Control\Balanced'
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.excel_filename = os.path.join(save_directory, f'game_data_{timestamp}.xlsx')
         self.last_min_value = 0
