@@ -21,7 +21,6 @@ class Worker:
         self.move_timer = pg.time.get_ticks()
         self.data_gather_timer = pg.time.get_ticks()
 
-
         self.tile = tile
         self.world.workers[tile["grid"][0]][tile["grid"][1]] = self
 
@@ -38,7 +37,6 @@ class Worker:
         self.building_looted_count_limit = 3
 
         # Export
-
         self.id = id
         self.character_value = character  # -1 stealing / 1 giving
         self.building_looted_all_time = 0
@@ -170,7 +168,7 @@ class Worker:
                     and not self.world.world[x][y]["collision"]
                     and not x == dest_x and not y == dest_y
                 ):
-                    return (x, y)  # Return the first valid spot found
+                    return (x, y)  # Return first valid spot found
 
         return None  # Return None if no valid spot is found
 
@@ -197,7 +195,7 @@ class Worker:
 
         else:
             if destination[0] is None or destination[1] is None:
-                return  # Return if either component of the destination is None
+                return  
             else:
                 x = destination[0]
                 y = destination[1]
@@ -229,8 +227,6 @@ class Worker:
             self.step_counter_with_timer += 1
 
     def move(self):
-        # Informations
-        nearest_building_position, dist_to_all_buildings, people_positions, nearest_person_position, dist_to_all_persons, worker, building = self.util_return()
         # Move
         if self.is_moving:
             destination = self.moving_behaviour(self.moving_number)
@@ -238,7 +234,7 @@ class Worker:
             if now - self.move_timer > 10:
                 if not self.path:  # No current path
                     self.create_path(destination)
-                    self.path_index = 0  # Reset path index
+                    self.path_index = 0  
                 elif self.path_index >= len(self.path):  # Path is complete
                     destination = self.moving_behaviour(self.moving_number)
                     self.create_path(destination)
@@ -253,10 +249,10 @@ class Worker:
         if number == 1 and self.is_moving:
             return None
         elif number == 2 and self.is_moving:
-            if self.interacting_behaviour == 1:  # Give behavior
+            if self.interacting_behaviour == 1:  # altruistic behavior
                 if self.optimal_worker_give_pos:
                     return self.find_valid_spot_around_destination(self.optimal_worker_give_pos)
-            elif self.interacting_behaviour == 2:  # Steal behavior
+            elif self.interacting_behaviour == 2:  # egoistic behavior
                 if self.optimal_worker_steal_pos:
                     return self.find_valid_spot_around_destination(self.optimal_worker_steal_pos)
         elif number == 3 and self.is_moving:
@@ -268,11 +264,11 @@ class Worker:
     # Specific movement
 
     def follow_person_behavior(self, behaviour=0):
-        if behaviour == 1:  # Give behavior
+        if behaviour == 1:  # altruistic behavior
             if self.optimal_worker_give_pos is not None:
                 self.create_path(self.find_valid_spot_around_destination(
                     self.optimal_worker_give_pos))
-        elif behaviour == 2:  # Steal behavior
+        elif behaviour == 2:  # egoistic behavior
             if self.optimal_worker_steal_pos is not None:
                 self.create_path(self.find_valid_spot_around_destination(
                     self.optimal_worker_steal_pos))
@@ -309,7 +305,7 @@ class Worker:
                         self.is_interacting = True
                         self.target_worker.is_being_interacted = True
 
-    def check_interacting_status(self):  # Resetting of status variables
+    def check_interacting_status(self):  # Resetting of status variables in case of a bug
         if self.building_looted_count >= self.building_looted_count_limit:
             self.building_looted_count = 0
             self.interaction_count = 0
@@ -326,7 +322,7 @@ class Worker:
         else:
             self.is_moving = True
 
-    def loot_building(self):  # loot any building in range of 3 and inv > 15
+    def loot_building(self):  # loot any building in range of 3 
         building_pos, dist = self.find_distance_buildings()
         if building_pos is not None:
             x, y = building_pos
@@ -397,8 +393,7 @@ class Worker:
             if target_worker and target_worker is not self:
                 if target_worker.inventory >= amount:
                     # Inventory Transfer
-                    self.inventory += amount * \
-                        random.uniform(0.8, 0.95)  # Loss logic
+                    self.inventory += amount * random.uniform(0.8, 0.95)  # Loss logic
                     target_worker.inventory -= amount
                     # Statistics
                     self.interaction_count += 1
@@ -453,6 +448,7 @@ class Worker:
                 elif inventory_value > max_building_inventory:
                     second_highest_inventory_building = building
 
+                # Viewing distance
                 if distance <= distance_limit:
 
                     # Update values
@@ -487,6 +483,7 @@ class Worker:
         # Values
         max_payoff = 0
         optimal_worker_give_pos = None
+
         if self.interaction_count <= self.interaction_count_limit:
             for person_pos in people_positions:
                 x, y = person_pos
@@ -621,8 +618,8 @@ class Worker:
                     self.take_from_person()
 
     # Other
-    # Decay of materials
 
+    # Decay of resources
     def decay_inventory(self, amount_in_percent=0.01, step_up_per_100=0.01):
         if self.inventory > 0:
             reduction_amount = self.inventory * \
@@ -632,12 +629,12 @@ class Worker:
     def management_of_decay(self):
         now = pg.time.get_ticks()
         if self.moving_number == 2 or self.moving_number == 3:  # Building or follow
-            if now - self.update_timer_decay > 1000:
+            if now - self.update_timer_decay > 1000: # Every second
                 self.update_timer_decay = now
                 self.decay_inventory()
                 self.inventory = round(self.inventory)
         elif self.moving_number == 4:  # Random
-            if now - self.update_timer_decay > 2000:
+            if now - self.update_timer_decay > 2000: # Every two seconds
                 self.update_timer_decay = now
                 self.decay_inventory()
                 self.inventory = round(self.inventory)
@@ -646,22 +643,7 @@ class Worker:
 
     # Updating
 
-    def debug(self):
-        # print("Gather need: " + str(self.need_gather) + " Give need " + str(self.need_give) +
-        #      " Steal need: " + str(self.need_steal) + " Inventory: "+str(self.inventory))
-        # print("IS INTERACTING: " + str(self.is_interacting) + " IS MOVING: " + str(self.is_moving))
-        # print("Moving number: " + str(self.moving_number))
-
-        # print("Goal: " + str(self.moving_behaviour(self.moving_number)) + " RealPos " + str(self.optimal_building_pos) +
-        #     " Own pos " + str(self.tile["grid"]))
-        if self.need_give > 10:
-            print("Give need: " + str(self.need_give))
-        # print("All buildings pos: " + str(self.find_buildings_positions()))
-        if self.is_being_interacted:
-            print("IS BEING INTERACTED")
-        if self.is_interacting:
-            print("INTERACTS")
-
+    # Gather the selected data every second
     def data_gather(self):
         now = pg.time.get_ticks()
         if now - self.data_gather_timer >= 1000:
@@ -680,7 +662,6 @@ class Worker:
             self.interaction_transfer = 0
 
     def update(self):
-        # self.debug()
         self.brain()
         self.loot_building()
         self.move()
@@ -689,4 +670,4 @@ class Worker:
         self.management_of_decay()
         self.data_gather()
 
-        # self.debug()
+

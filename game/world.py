@@ -10,16 +10,19 @@ class World:
         self.grid_length_y = grid_length_y
         self.game = game
 
+        # Scale factor Perlin noise
         self.perlin_scale = grid_length_x / 2
+        # Creation of world and collision matrix
         self.world = self.create_world()
         self.collision_matrix = self.create_collision_matrix()
-
+        # Arrays to keep track of the position of workers and buildings
         self.buildings = [[None] * (self.grid_length_x + 1) for _ in range(self.grid_length_y + 1)]
         self.workers = [[None] * self.grid_length_x for _ in range(self.grid_length_y)]
 
         self.temp_tile = None
         self.examine_tile = None
 
+    # Creates a new building and adds it to the world
     def create_building(self, grid_pos, game):
         ent = Lumbermill(self.world[grid_pos[0]][grid_pos[1]]["render_pos"], game)
         tile_data = self.world[grid_pos[0]][grid_pos[1]]
@@ -28,6 +31,7 @@ class World:
         tile_data["collision"] = True
         self.collision_matrix[grid_pos[1]][grid_pos[0]] = 0
 
+    # Creates the world grid
     def create_world(self):
         world = [
             [
@@ -74,6 +78,7 @@ class World:
 
         return out
 
+    # Creates the collision matrix based on the world grid
     def create_collision_matrix(self):
         collision_matrix = [[1 for _ in range(self.grid_length_x)] for _ in range(self.grid_length_y)]
         for x in range(self.grid_length_x):
