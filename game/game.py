@@ -91,7 +91,7 @@ class Game:
                         entity.interaction_count_all_time,
                         entity.interaction_transfer_all_time,
                         entity.step_counter,
-                        entity.export_inventory,  # Modified to use the adjusted inventory_values
+                        entity.export_inventory,  
                         entity.export_interaction_with_time,
                         entity.export_interaction_transfers_with_time
                     ])
@@ -115,7 +115,6 @@ class Game:
 
                     inventory_values = entity.export_inventory
 
-                    # Ensure inventory_values has exactly 32 items, padding with the last item
                     while len(inventory_values) < self.export_items_count:
                         inventory_values.append(inventory_values[-1])
 
@@ -180,7 +179,7 @@ class Game:
                     row_data.extend(step_values)
                     data.append(row_data)
 
-            # # export the amount of steps taken of all the workers
+            # export the amount of steps taken of all the workers
             self.export_sheet_data(writer, "Steps with time", [
                 ["ID", "Steps with time"] +
                 [i+1 for i in range(len(step_values))]
@@ -209,7 +208,7 @@ class Game:
             x = random.randint(0, self.world.grid_length_x - 1)
             y = random.randint(0, self.world.grid_length_y - 1)
 
-            # Check if the chosen position is suitable (not in collision and not too close to existing buildings)
+            # Check if the chosen position is suitable 
             if (
                 not self.world.world[x][y]["collision"]
                 and self.is_far_from_existing_buildings(x, y, min_distance=5)
